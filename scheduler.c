@@ -90,12 +90,28 @@ void read_workload_file(char* filename) {
 
 
 void policy_FIFO(struct job *head) {
+  int x = 0;
+  while(head != NULL){
+    printf("t= %d: [Job %d] arrived at [%d], ran for: [%d]\n", x, head->id, head->arrival, head->length);
+    x = x + head->length;
+    head = head->next;
+  }
+  return;
+}
+
+void analyze_FIFO(struct job *head) {
   // TODO: Fill this in
 
   return;
 }
 
-void analyze_FIFO(struct job *head) {
+void policy_SJF(struct job *head) {
+  // TODO: Fill this in
+
+  return;
+}
+
+void analyze_SJF(struct job *head) {
   // TODO: Fill this in
 
   return;
@@ -127,8 +143,15 @@ int main(int argc, char **argv) {
 
     exit(EXIT_SUCCESS);
   }
-
-  // TODO: Add other policies 
+  else if (strcmp(policy, "SJF") == 0){
+    policy_SJF(head);
+    if (analysis) {
+      printf("Begin analyzing SJF:\n");
+      analyze_SJF(head);
+      printf("End analyzing SJF.\n");
+    }
+    exit(EXIT_SUCCESS);
+  }
 
 	exit(EXIT_SUCCESS);
 }
