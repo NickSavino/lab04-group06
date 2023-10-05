@@ -6,4 +6,4 @@ scheduler.out: scheduler.c
 
 .PHONY: clean
 clean: 
-	rm -f *.out
+	rm -f scheduler.out

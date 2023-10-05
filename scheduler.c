@@ -97,15 +97,46 @@ void read_workload_file(char *filename)
 
 void policy_FIFO(struct job *head)
 {
-  // TODO: Fill this in
-
+  printf("Execution trace with FIFO:\n");
+  struct job *temp = head;
+  int currtime = 0;
+  while (temp != NULL)
+  {
+    printf("t=%d: [Job %d] arrived at [%d], ran for: [%d]\n", currtime, temp->id, temp->arrival, temp->length);
+    currtime += temp->length;
+    temp = temp->next;
+  }
+  printf("End of execution with FIFO.\n");
   return;
 }
 
+// response time = start time - arival time
+// turnaround time = completion time - arrival time
+// output = Job 0 -- Response time: 0  Turnaround: 3  Wait: 0
 void analyze_FIFO(struct job *head)
 {
-  // TODO: Fill this in
+  struct job *temp = head;
+  int response_t = 0;
+  int turnaround_t = 0;
+  int start_t = 0;
+  double total_r = 0.0;
+  double total_t = 0.0;
 
+  int job_count = 0;
+  while (temp != NULL)
+  {
+    response_t = start_t - temp->arrival;
+    turnaround_t = start_t + temp->length - temp->arrival;
+    printf("Job %d -- Response time: %d  Turnaround: %d  Wait: %d\n", temp->id, response_t, turnaround_t, response_t);
+    start_t += temp->length;
+    total_r += response_t;
+    total_t += turnaround_t;
+    job_count++;
+    temp = temp->next;
+  }
+  double av_r = total_r / job_count;
+  double av_t = total_t / job_count;
+  printf("Average -- Response: %.2lf  Turnaround %.2lf  Wait %.2lf", av_r, av_t, av_r);
   return;
 }
 
@@ -149,7 +180,7 @@ int main(int argc, char **argv)
     {
       printf("Begin analyzing FIFO:\n");
       analyze_FIFO(head);
-      printf("End analyzing FIFO.\n");
+      printf("\nEnd analyzing FIFO.\n");
     }
 
     exit(EXIT_SUCCESS);
@@ -157,7 +188,7 @@ int main(int argc, char **argv)
 
   else if (strcmp(policy, "SJF") == 0)
   {
-    policy_SJF()
+    int a = 0;
   }
   // TODO: Add other policies
 
