@@ -89,19 +89,43 @@ void read_workload_file(char* filename) {
 }
 
 
-void policy_FIFO(struct job *head) {
+void policy_FIFO(struct job *head, char *output_filename) {
   int x = 0;
-  while(head != NULL){
-    printf("t= %d: [Job %d] arrived at [%d], ran for: [%d]\n", x, head->id, head->arrival, head->length);
+
+  FILE *output_file = fopen(output_filename, "w");
+  if (output_file == NULL) {
+    fprintf(stderr, "Error: Could not open output file.\n");
+    return;
+  }
+  fprintf(output_file, "Execution trace with FIFO:\n");
+  while (head != NULL) {
+    fprintf(output_file, "t= %d: [Job %d] arrived at [%d], ran for: [%d]\n", x, head->id, head->arrival, head->length);
     x = x + head->length;
     head = head->next;
   }
-  return;
+  fprintf(output_file, "End of execution with FIFO.\n");
+
+  fclose(output_file);
 }
 
 void analyze_FIFO(struct job *head) {
-  // TODO: Fill this in
 
+  int y = 0;
+  double resTime = 0;
+  double turnTime = 0;
+  double waitTime = 0;
+  double i = 0;
+
+  while(head != NULL){
+    resTime += y;
+    turnTime += y+head->length;
+    waitTime += y;
+    i++;
+    printf("Job %d -- Response time: %d Turnaround: %d Wait: %d\n", head->id, y, y+head->length, y);
+    y = y + head->length;
+    head = head->next;
+  }
+  printf("Average -- Response: %.2f Turnaround %.2f Wait %.2f\n", (resTime/ i), (turnTime/i), (waitTime/i));
   return;
 }
 
@@ -119,7 +143,7 @@ void analyze_SJF(struct job *head) {
 
 int main(int argc, char **argv) {
 
- if (argc < 4) {
+ if (argc < 5) {
     fprintf(stderr, "missing variables\n");
     fprintf(stderr, "usage: %s analysis-flag policy workload-file\n", argv[0]);
 		exit(EXIT_FAILURE);
@@ -128,13 +152,13 @@ int main(int argc, char **argv) {
   int analysis = atoi(argv[1]);
   char *policy = argv[2],
        *workload = argv[3];
-
+  char *output_filename = argv[4];
   // Note: we use a global variable to point to 
-  // the start of a linked-list of jobs, i.e., the job list 
+  // the start of a linked-list of jobs, i.e., the job list  
   read_workload_file(workload);
 
   if (strcmp(policy, "FIFO") == 0 ) {
-    policy_FIFO(head);
+    policy_FIFO(head, output_filename);
     if (analysis) {
       printf("Begin analyzing FIFO:\n");
       analyze_FIFO(head);
