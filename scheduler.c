@@ -108,7 +108,9 @@ void policy_FIFO(struct job *head, char *output_filename) {
   fclose(output_file);
 }
 
-void analyze_FIFO(struct job *head) {
+
+
+void analyze_FIFO(struct job *head, char *output_filename) {
 
   int y = 0;
   double resTime = 0;
@@ -116,17 +118,26 @@ void analyze_FIFO(struct job *head) {
   double waitTime = 0;
   double i = 0;
 
-  while(head != NULL){
+  FILE *output_file = fopen(output_filename, "a");
+  if (output_file == NULL) {
+    fprintf(stderr, "Error: Could not open output file.\n");
+    return;
+  }
+
+  fprintf(output_file, "Begin analying FIFO.\n");
+  while (head != NULL) {
     resTime += y;
     turnTime += y+head->length;
     waitTime += y;
     i++;
-    printf("Job %d -- Response time: %d Turnaround: %d Wait: %d\n", head->id, y, y+head->length, y);
+    fprintf(output_file, "Job %d -- Response time: %d Turnaround: %d Wait: %d\n", head->id, y, y+head->length, y);
     y = y + head->length;
     head = head->next;
   }
-  printf("Average -- Response: %.2f Turnaround %.2f Wait %.2f\n", (resTime/ i), (turnTime/i), (waitTime/i));
-  return;
+  fprintf(output_file, "Average -- Response: %.2f Turnaround %.2f Wait %.2f\n", (resTime/ i), (turnTime/i), (waitTime/i));
+  fprintf(output_file, "End analying FIFO.\n");
+
+  fclose(output_file);
 }
 
 void policy_SJF(struct job *head) {
@@ -161,7 +172,7 @@ int main(int argc, char **argv) {
     policy_FIFO(head, output_filename);
     if (analysis) {
       printf("Begin analyzing FIFO:\n");
-      analyze_FIFO(head);
+      analyze_FIFO(head, output_filename);
       printf("End analyzing FIFO.\n");
     }
 
