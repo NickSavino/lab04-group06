@@ -14,6 +14,59 @@ struct job
   struct job *next;
 };
 
+int getJobCount(const struct job *head)
+{
+  struct job *tmp = head;
+  int c = 0;
+  while (tmp != NULL)
+  {
+    c++;
+    tmp = tmp->next;
+  }
+  return c;
+}
+
+void sortJobs(struct job *head)
+{
+  struct job *start = head;
+  struct job *next = head->next;
+  if (head == NULL)
+  {
+    return;
+  }
+
+  while (start != NULL && start->next != NULL)
+  {
+
+    while (next != NULL)
+    {
+      int next_check = next->arrival + next->length;
+      int start_check = start->arrival + start->length;
+
+      // if the next job starts and finishes before the prev job finshes...
+      // we are going to swap the data within the nodes, not the address.
+      if (next_check < start_check && start_check > next->arrival)
+      {
+        int tmpid = start->id;
+        int tmparvl = start->arrival;
+        int tmplen = start->length;
+
+        start->arrival = next->arrival;
+        start->id = next->id;
+        start->length = next->length;
+
+        next->arrival = tmparvl;
+        next->id = tmpid;
+        next->length = tmplen;
+      }
+      next = next->next;
+    }
+    start = start->next;
+    next = start->next; // Reset the 'next' pointer for the inner loop
+  }
+  return;
+}
+
 /*** Globals ***/
 int seed = 100;
 
@@ -102,6 +155,11 @@ void policy_FIFO(struct job *head)
   int currtime = 0;
   while (temp != NULL)
   {
+    // if one task ends before the next arrives, this solves that.
+    if (currtime < temp->arrival)
+    {
+      currtime = temp->arrival;
+    }
     printf("t=%d: [Job %d] arrived at [%d], ran for: [%d]\n", currtime, temp->id, temp->arrival, temp->length);
     currtime += temp->length;
     temp = temp->next;
@@ -121,10 +179,13 @@ void analyze_FIFO(struct job *head)
   int start_t = 0;
   double total_r = 0.0;
   double total_t = 0.0;
-
   int job_count = 0;
   while (temp != NULL)
   {
+    if (start_t < temp->arrival)
+    {
+      start_t = temp->arrival;
+    }
     response_t = start_t - temp->arrival;
     turnaround_t = start_t + temp->length - temp->arrival;
     printf("Job %d -- Response time: %d  Turnaround: %d  Wait: %d\n", temp->id, response_t, turnaround_t, response_t);
@@ -140,17 +201,69 @@ void analyze_FIFO(struct job *head)
   return;
 }
 
+// add a sort function
+// SJF runs the shortest job that arrives at a given time
+
+// chnage this so that
 void policy_SJF(struct job *head)
 {
-  // TODO: Fill this in
+  sortJobs(head);
+  printf("Execution trace with SJF:\n");
+  struct job *temp = head;
+  int currtime = 0;
+  while (temp != NULL)
+  {
+    // if one task ends before the next arrives, this solves that.
+    if (currtime < temp->arrival)
+    {
+      currtime = temp->arrival;
+    }
+    printf("t=%d: [Job %d] arrived at [%d], ran for: [%d]\n", currtime, temp->id, temp->arrival, temp->length);
+    currtime += temp->length;
+    temp = temp->next;
+  }
+  printf("End of execution with SJF.\n");
+  return;
 
   return;
 }
 
 void analyze_SJF(struct job *head)
 {
-  // TODO: Fill this in
+  struct job *temp = head;
+  int jobcount = getJobCount(head);
 
+  int printarr[jobcount][2];
+
+  int response_t = 0;
+  int turnaround_t = 0;
+  int start_t = 0;
+  double total_r = 0.0;
+  double total_t = 0.0;
+  while (temp != NULL)
+  {
+    if (start_t < temp->arrival)
+    {
+      start_t = temp->arrival;
+    }
+    response_t = start_t - temp->arrival;
+    turnaround_t = start_t + temp->length - temp->arrival;
+    // printf("Job %d -- Response time: %d  Turnaround: %d  Wait: %d\n", temp->id, response_t, turnaround_t, response_t);
+    printarr[temp->id][0] = response_t;
+    printarr[temp->id][1] = turnaround_t;
+    start_t += temp->length;
+    total_r += response_t;
+    total_t += turnaround_t;
+    temp = temp->next;
+  }
+
+  for (int i = 0; i < jobcount; i++)
+  {
+    printf("Job %d -- Response time: %d  Turnaround: %d  Wait: %d\n", i, printarr[i][0], printarr[i][1], printarr[i][0]);
+  }
+  double av_r = total_r / jobcount;
+  double av_t = total_t / jobcount;
+  printf("Average -- Response: %.2lf  Turnaround %.2lf  Wait %.2lf", av_r, av_t, av_r);
   return;
 }
 
@@ -188,7 +301,15 @@ int main(int argc, char **argv)
 
   else if (strcmp(policy, "SJF") == 0)
   {
-    int a = 0;
+    policy_SJF(head);
+    if (analysis)
+    {
+      printf("Begin analyzing SJF:\n");
+      analyze_SJF(head);
+      printf("\nEnd analyzing SJF.\n");
+    }
+
+    exit(EXIT_SUCCESS);
   }
   // TODO: Add other policies
 
